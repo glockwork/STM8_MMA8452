@@ -1,0 +1,32 @@
+﻿设置MMA8452采样频率有效
+
+void Init_MMA8452(void) //中断的设置
+{
+   //设置休眠
+   MMA845x_Standby();
+   
+   /* 设置采样频率为100Hz */
+   MMA845x_Output_Data_Rates(Output_Data_Rates_100);
+   
+   /* 设置配置寄存器通过设置“或”条件OAE=1，使能X，Y方向运动检测和锁存 */
+   Single_Write_MMA8452(FF_MT_CFG,FF_MT_CFG_EFE|FF_MT_CFG_OAE|FF_MT_CFG_ZEFE);
+      
+   /* 设定移动侦测阈值>3g  */
+   float i = 1.5/0.063;
+   unsigned char temp = i;
+   Single_Write_MMA8452(FF_MT_THS,i);
+   
+   /* 设置去抖计数器100 Hz采样率，计时器100毫秒,以消除虚假读数。 跟采样频率和电源模式有关*/
+   Single_Write_MMA8452(FF_MT_COUNT,10);
+   
+   /* 启用系统中的运动/自由落体中断功能（CTRL_REG4）*/
+   Single_Write_MMA8452(CTRL_REG4,CTRL_REG4_INT_EN_FF_MT);
+   
+   /* 将运动/自由落体中断功能配置到INT1的硬件引脚（CTRL_REG5） */
+   Single_Write_MMA8452(CTRL_REG5, CTRL_REG5_INT_CFG_FF_MT);
+   
+   /* 将设备切换到主动模式 */
+   MMA845x_Active();
+}
+
+设置成8bit模式，只需要读0X01-0X03就可以，分别是X、y、z轴
